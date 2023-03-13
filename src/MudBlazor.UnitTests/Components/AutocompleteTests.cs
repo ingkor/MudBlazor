@@ -1089,5 +1089,52 @@ namespace MudBlazor.UnitTests.Components
             items2.ToList().IndexOf(item).Should().Be(-1);
             items2.Count(s => s.Find(listItemQuerySelector).ClassList.Contains(selectedItemClassName)).Should().Be(0);
         }
+        [Test]
+        public async Task Autocomplete_Should_Not_Throw_When_SearchFunc_Is_Null()
+        {
+            var comp = Context.RenderComponent<AutocompleteTest1>();
+            var autocompletecomp = comp.FindComponent<MudAutocomplete<string>>();
+
+            autocompletecomp.SetParam(p => p.SearchFunc, null);
+
+            comp.Find("input").Input("Foo");
+
+            await Task.Delay(20);
+
+            comp.WaitForAssertion(() => comp.Find("div.mud-popover").ToMarkup().Should().NotContain("Foo"));
+        }
+        [Test]
+        public async Task AutoComplete_Should_Fire_KeyDown_KeyUp_KeyPressEvent()
+        {
+            var comp = Context.RenderComponent<AutocompleteTest1>();
+            // select elements needed for the test
+            var autocompletecomp = comp.FindComponent<MudAutocomplete<string>>();
+            var autocomplete = autocompletecomp.Instance;
+            var result = new List<string>();
+            var eventCallbackFactory = new EventCallbackFactory();
+
+            var customEventCallback = eventCallbackFactory.Create<KeyboardEventArgs>(this, v =>
+            {
+                result.Add("KeyEvent Thrown");
+            });
+
+            autocompletecomp.SetParam(p => p.OnKeyDown, customEventCallback);
+            autocompletecomp.SetParam(p => p.OnKeyUp, customEventCallback);
+            autocompletecomp.SetParam(p => p.OnKeyPress, customEventCallback);
+
+            await Task.Delay(100);
+
+            var args = new KeyboardEventArgs();
+            args.Key = "A";
+            args.Type = "keydown";
+            
+            //input events
+            autocompletecomp.Find("input").KeyUp(args);
+            autocompletecomp.Find("input").KeyPress(args);
+            autocompletecomp.Find("input").KeyDown(args);
+
+            //if all fired, count should be 3
+            result.Count.Should().Be(3);
+        }
     }
 }
