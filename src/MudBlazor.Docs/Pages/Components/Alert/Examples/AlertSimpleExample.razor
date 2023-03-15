@@ -4,4 +4,36 @@
 <MudAlert Severity="Severity.Info">The reactor was fired up successfully</MudAlert>
 <MudAlert Severity="Severity.Success">The reactor is running at optimum temperature</MudAlert>
 <MudAlert Severity="Severity.Warning">The reactor temperature exceeds the optimal range</MudAlert>
+
 <MudAlert Severity="Severity.Error">Meltdown is imminent</MudAlert>
+<MudSelect T="string" Label="Select Coffee Without MultiSelect"
+           AnchorOrigin="Origin.BottomCenter">
+    <MudSelectItem Value="@("Coffee1")">
+        Cappuccino
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee2")">
+        Cafe Latte
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee3")">
+        Espresso
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee4")">
+        Irish Coffee
+    </MudSelectItem>
+</MudSelect>
+
+<MudSelect T="string" Label="Select Coffee With MultiSelect"
+           AnchorOrigin="Origin.BottomCenter" MultiSelection="true">
+    <MudSelectItem Value="@("Coffee1")">
+        Cappuccino
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee2")">
+        Cafe Latte
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee3")">
+        Espresso
+    </MudSelectItem>
+    <MudSelectItem Value="@("Coffee4")">
+        Irish Coffee
+    </MudSelectItem>
+</MudSelect>
