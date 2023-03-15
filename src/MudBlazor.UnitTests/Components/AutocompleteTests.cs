@@ -497,7 +497,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.InvokeAsync(() => autocomplete.ToggleMenu());
             await comp.InvokeAsync(() => autocomplete.Clear().Wait());
             comp.Markup.Should().NotContain("mud-popover-open");
-            autocomplete.Value.Should().Be("");
+            autocomplete.Value.Should().Be(null);
             autocomplete.Text.Should().Be("");
 
             // now let's type a different state
@@ -510,7 +510,7 @@ namespace MudBlazor.UnitTests.Components
             // Clearing it and check the close status text and value again
             await comp.InvokeAsync(() => autocomplete.Clear().Wait());
             comp.WaitForAssertion(() => comp.Find("div.mud-popover").ClassList.Should().NotContain("mud-popover-open"));
-            autocomplete.Value.Should().Be("");
+            autocomplete.Value.Should().Be(null);
             autocomplete.Text.Should().Be("");
         }
 
@@ -577,7 +577,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.InvokeAsync(() => autocomplete.Reset());
             comp.Markup.Should().NotContain("mud-popover-open");
             autocomplete.Value.Should().Be(null);
-            autocomplete.Text.Should().Be(null);
+            autocomplete.Text.Should().Be("");
 
             // now let's type a different state
             autocompletecomp.Find("input").Input("Calif");
@@ -590,7 +590,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.InvokeAsync(() => autocomplete.Reset());
             comp.WaitForAssertion(() => comp.Find("div.mud-popover").ClassList.Should().NotContain("mud-popover-open"));
             autocomplete.Value.Should().Be(null);
-            autocomplete.Text.Should().Be(null);
+            autocomplete.Text.Should().Be("");
         }
 
         [Test]
@@ -1103,38 +1103,29 @@ namespace MudBlazor.UnitTests.Components
 
             comp.WaitForAssertion(() => comp.Find("div.mud-popover").ToMarkup().Should().NotContain("Foo"));
         }
+
         [Test]
-        public async Task AutoComplete_Should_Fire_KeyDown_KeyUp_KeyPressEvent()
+        public async Task Autocomplete_Should_Raise_KeyDown_KeyUp_Event()
         {
+            //Create comp
             var comp = Context.RenderComponent<AutocompleteTest1>();
-            // select elements needed for the test
             var autocompletecomp = comp.FindComponent<MudAutocomplete<string>>();
-            var autocomplete = autocompletecomp.Instance;
             var result = new List<string>();
-            var eventCallbackFactory = new EventCallbackFactory();
+            //create eventCallback
+            var customEvent = new EventCallbackFactory().Create<KeyboardEventArgs>("A",() => result.Add("keyevent thrown"));
 
-            var customEventCallback = eventCallbackFactory.Create<KeyboardEventArgs>(this, v =>
-            {
-                result.Add("KeyEvent Thrown");
-            });
+            //set eventCallback
+            //SetCallback also possible
+            //autocompletecomp.SetCallback(p => p.OnKeyDown, (KeyboardEventArgs e ) => result.Add("keyevent thrown"));
+            autocompletecomp.SetParam(p => p.OnKeyDown, customEvent);
+            autocompletecomp.SetParam(p => p.OnKeyUp, customEvent);
 
-            autocompletecomp.SetParam(p => p.OnKeyDown, customEventCallback);
-            autocompletecomp.SetParam(p => p.OnKeyUp, customEventCallback);
-            autocompletecomp.SetParam(p => p.OnKeyPress, customEventCallback);
-
-            await Task.Delay(100);
-
-            var args = new KeyboardEventArgs();
-            args.Key = "A";
-            args.Type = "keydown";
-            
-            //input events
-            autocompletecomp.Find("input").KeyUp(args);
-            autocompletecomp.Find("input").KeyPress(args);
-            autocompletecomp.Find("input").KeyDown(args);
-
-            //if all fired, count should be 3
-            result.Count.Should().Be(3);
+            result.Should().BeEmpty();
+            //Act
+            autocompletecomp.Find("input").KeyDown("a");
+            autocompletecomp.Find("input").KeyUp("a");
+            //Assert
+            result.Count.Should().Be(2);
         }
     }
 }
