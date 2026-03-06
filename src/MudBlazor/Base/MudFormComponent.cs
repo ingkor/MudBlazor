@@ -418,12 +418,18 @@ namespace MudBlazor
                 // If Value has changed while we were validating it, ignore results and exit
                 if (!changed)
                 {
-                    // this must be called in any case, because even if Validation is null the user might have set Error and ErrorText manually
-                    // if Error and ErrorText are set by the user, setting them here will have no effect.
-                    // if Error, create an error id that can be used by aria-describedby on input control
                     ValidationErrors = errors;
-                    await ErrorState.SetValueAsync(errors.Count > 0);
-                    await ErrorTextState.SetValueAsync(errors.FirstOrDefault());
+                    var hasValidationErrors = errors.Count > 0;
+                    // Only override Error/ErrorText when validation produced errors, or when the
+                    // Error parameter has not been explicitly set to true by the user.  Without this
+                    // guard, a successful validation run (errors.Count == 0) would call
+                    // SetValueAsync(false) which silently clears an externally-set Error=true,
+                    // because ParameterState._lastValue is not re-synced after a programmatic write.
+                    if (hasValidationErrors || !Error)
+                    {
+                        await ErrorState.SetValueAsync(hasValidationErrors);
+                        await ErrorTextState.SetValueAsync(errors.FirstOrDefault());
+                    }
                     await ErrorIdState.SetValueAsync(HasErrors ? Guid.NewGuid().ToString() : null);
                     Form?.Update(this);
                     StateHasChanged();
