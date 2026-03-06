@@ -25,11 +25,29 @@ window.mudpopoverHelper = {
         };
     },
 
-    basePopoverZIndex: Number.parseInt(getComputedStyle(document.documentElement)
-        .getPropertyValue('--mud-zindex-popover')) || 1200,
+    _basePopoverZIndex: null,
+    _baseTooltipZIndex: null,
 
-    baseTooltipZIndex: Number.parseInt(getComputedStyle(document.documentElement)
-        .getPropertyValue('--mud-zindex-tooltip')) || 1600,
+    get basePopoverZIndex() {
+        if (this._basePopoverZIndex === null) {
+            this._basePopoverZIndex = Number.parseInt(getComputedStyle(document.documentElement)
+                .getPropertyValue('--mud-zindex-popover')) || 1200;
+        }
+        return this._basePopoverZIndex;
+    },
+
+    get baseTooltipZIndex() {
+        if (this._baseTooltipZIndex === null) {
+            this._baseTooltipZIndex = Number.parseInt(getComputedStyle(document.documentElement)
+                .getPropertyValue('--mud-zindex-tooltip')) || 1600;
+        }
+        return this._baseTooltipZIndex;
+    },
+
+    resetZIndexCache: function () {
+        this._basePopoverZIndex = null;
+        this._baseTooltipZIndex = null;
+    },
 
     // static set of replacement values
     flipClassReplacements: {
