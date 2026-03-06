@@ -266,6 +266,15 @@ namespace MudBlazor
             _selectedDate = null;
             await SetDateAsync(null, true);
 
+            // When a Mask is active the MudTextField's MudMask component owns the
+            // displayed text and is not automatically cleared by SetDateAsync alone.
+            // Explicitly clearing the input reference ensures the mask resets its
+            // internal state and the placeholder is displayed again.
+            if (_inputReference is not null)
+            {
+                await _inputReference.ClearAsync();
+            }
+
             if (AutoClose)
             {
                 await CloseAsync(false);
