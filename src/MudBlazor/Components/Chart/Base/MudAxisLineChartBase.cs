@@ -162,11 +162,36 @@ public abstract class MudAxisLineChartBase<T, TOptions> : MudAxisChartBase<T, TO
             var overrideSettings = GetSeriesDisplayOverride(series);
             var interpolationOption = overrideSettings?.InterpolationOption ?? ChartOptions?.InterpolationOption;
 
-            var interpolationEnabled = ShouldInterpolate && interpolationOption is not InterpolationOption.Straight and not null;
+            // Spline interpolation requires at least 4 data points to form a well-defined
+            // tridiagonal system.  With fewer points fall back to straight lines so the chart
+            // renders without throwing an ArgumentException.
+            const int MinPointsForSpline = 4;
+            var interpolationEnabled = ShouldInterpolate
+                && interpolationOption is not InterpolationOption.Straight and not null
+                && series.Data.Points.Count >= MinPointsForSpline;
 
-            var (firstPointX, firstPointY, lastPointX) = interpolationEnabled
-                ? GenerateInterpolatedLines(i, chartLine, chartDataCircles, lowestHorizontalLine, gridYUnits, horizontalSpace, verticalSpace)
-                : GenerateStraightLines(i, chartLine, chartDataCircles, lowestHorizontalLine, gridYUnits, horizontalSpace, verticalSpace);
+            (double firstPointX, double firstPointY, double lastPointX) result;
+            if (interpolationEnabled)
+            {
+                try
+                {
+                    result = GenerateInterpolatedLines(i, chartLine, chartDataCircles, lowestHorizontalLine, gridYUnits, horizontalSpace, verticalSpace);
+                }
+                catch (Exception)
+                {
+                    // The matrix solver can overflow for very large data sets; fall back
+                    // gracefully to straight-line rendering instead of crashing the page.
+                    chartLine.Clear();
+                    chartDataCircles.Clear();
+                    result = GenerateStraightLines(i, chartLine, chartDataCircles, lowestHorizontalLine, gridYUnits, horizontalSpace, verticalSpace);
+                }
+            }
+            else
+            {
+                result = GenerateStraightLines(i, chartLine, chartDataCircles, lowestHorizontalLine, gridYUnits, horizontalSpace, verticalSpace);
+            }
+
+            var (firstPointX, firstPointY, lastPointX) = result;
 
             var line = new SvgPath
             {
