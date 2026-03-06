@@ -1169,15 +1169,31 @@ namespace MudBlazor
         /// </summary>
         private double ScrollEdgeAdjust(double position, double panelSize)
         {
-            var minScroll = 0.0;
             var maxScroll = Math.Max(0, _allTabsSize - _tabBarContentSize);
+
+            // RTL horizontal tabs use negative scroll positions (translateX is negated in CSS).
+            // Clamp in the negative range so the left arrow can actually move the scroll offset.
+            if (RightToLeft && !_isVerticalTabs)
+            {
+                double minScroll = -maxScroll;
+                double adjustedMax = 0.0;
+                if (_tabBarContentSize < panelSize)
+                {
+                    var tooSmallSize = _tabBarContentSize;
+                    minScroll = Math.Min(0, -(maxScroll - Math.Max(0, maxScroll - tooSmallSize)));
+                    adjustedMax = Math.Max(minScroll, -(tooSmallSize / 2));
+                }
+                return Math.Clamp(position, minScroll, adjustedMax);
+            }
+
+            var scrollMin = 0.0;
             if (_tabBarContentSize < panelSize)
             {
                 var tooSmallSize = _tabBarContentSize;
                 maxScroll = Math.Max(0, maxScroll - tooSmallSize);
-                minScroll = Math.Min(maxScroll, tooSmallSize / 2);
+                scrollMin = Math.Min(maxScroll, tooSmallSize / 2);
             }
-            return Math.Clamp(position, minScroll, maxScroll);
+            return Math.Clamp(position, scrollMin, maxScroll);
         }
 
         /// <summary>
@@ -1192,6 +1208,12 @@ namespace MudBlazor
             var panelSize = GetPanelLength(panel);
             var scrollAmount = Math.Max(_tabBarContentSize, panelSize); // minimum 1 tab scroll
             if (!isNext)
+            {
+                scrollAmount = -scrollAmount;
+            }
+            // In RTL horizontal tabs _scrollPosition is stored as a negative value so
+            // the logical direction of "prev" and "next" must be inverted.
+            if (RightToLeft && !_isVerticalTabs)
             {
                 scrollAmount = -scrollAmount;
             }
