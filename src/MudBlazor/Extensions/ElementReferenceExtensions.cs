@@ -45,6 +45,12 @@ namespace MudBlazor
         public static ValueTask MudSelectRangeAsync(this ElementReference elementReference, int pos1, int pos2) =>
             elementReference.GetJSRuntime()?.InvokeVoidAsync("mudElementRef.selectRange", elementReference, pos1, pos2) ?? ValueTask.CompletedTask;
 
+        public static ValueTask<int> MudGetCaretPositionAsync(this ElementReference elementReference) =>
+            elementReference.GetJSRuntime()?.InvokeAsync<int>("mudInput.getCaretPosition", elementReference) ?? ValueTask.FromResult(0);
+
+        public static ValueTask MudSetCaretPositionAsync(this ElementReference elementReference, int position) =>
+            elementReference.GetJSRuntime()?.InvokeVoidAsync("mudElementRef.selectRange", elementReference, position, position) ?? ValueTask.CompletedTask;
+
         public static ValueTask MudChangeCssAsync(this ElementReference elementReference, string css) =>
             elementReference.GetJSRuntime()?.InvokeVoidAsync("mudElementRef.changeCss", elementReference, css) ?? ValueTask.CompletedTask;
 

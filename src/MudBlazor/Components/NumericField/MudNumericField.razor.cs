@@ -497,8 +497,14 @@ namespace MudBlazor
                 var formattedText = ConvertSet(ReadValue);
                 if (!string.Equals(ReadText, formattedText, StringComparison.Ordinal))
                 {
+                    // Preserve the caret position across the formatting update so that
+                    // typing in the middle of the field (Immediate=true) does not jump
+                    // the cursor to the end of the newly-formatted string.
+                    var caretBefore = await _elementReference.ElementReference.MudGetCaretPositionAsync();
                     await SetTextCoreAsync(formattedText);
                     await _elementReference.SetText(formattedText, updateValue: false);
+                    var clampedCaret = Math.Min(caretBefore, formattedText?.Length ?? 0);
+                    await _elementReference.ElementReference.MudSetCaretPositionAsync(clampedCaret);
                 }
             }
         }
