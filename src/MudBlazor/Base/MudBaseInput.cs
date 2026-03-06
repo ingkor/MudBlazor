@@ -12,6 +12,9 @@ namespace MudBlazor
     public abstract class MudBaseInput<T> : MudFormComponent<T, string>
     {
         private bool _isDirty;
+
+        /// <inheritdoc/>
+        protected override bool IsValueDirty => _isDirty;
         /// <summary>
         /// Prevents validation from occurring more than once during a validation cycle.
         /// </summary>

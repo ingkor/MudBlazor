@@ -301,6 +301,14 @@ namespace MudBlazor
             return execute();
         }
 
+        /// <summary>
+        /// Indicates whether the field value has been modified since the last reset.
+        /// Override in derived classes to guard <see cref="EditFormValidate"/> calls so that
+        /// <see cref="EditContext.OnFieldChanged"/> is not raised on blur when no value change
+        /// has occurred.
+        /// </summary>
+        protected virtual bool IsValueDirty => true;
+
         protected Task BeginValidateAsync()
         {
             Func<Task> execute = async () =>
@@ -309,7 +317,7 @@ namespace MudBlazor
 
                 await ValidateValue();
 
-                if (EqualityComparer<T>.Default.Equals(value, ReadValue))
+                if (EqualityComparer<T>.Default.Equals(value, ReadValue) && IsValueDirty)
                 {
                     EditFormValidate();
                 }
